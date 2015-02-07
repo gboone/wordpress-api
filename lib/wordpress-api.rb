@@ -1,51 +1,105 @@
-require 'open-uri'
+require 'net/http'
 require 'json'
 
 class WordPress
+
   def self.hi
-    puts "Hello world!"
+  	puts 'hello world'
   end
 
   def self.set_source(source)
     @source = source
   end
 
-  def self.get_posts(source, count = nil)
-		unless count.nil?
-			data = open("#{source}posts/")
-		else
-			data = open("#{source}posts/?filter[posts_per_page]=#{count}")
+  def self.query_url(uri)
+  	begin
+  		data = Net::HTTP.get(uri)
+  	rescue
+  		puts "There was an error with the provided URL: #{url}"
+  	end
+  end
+
+  def self.perpare_query(params)
+  	args = Hash.new
+  	begin
+  		params.each{|x| 
+  			arg = {"filter[#{x[0]}]"=>"#{x[1]}"};
+  			args = args.merge(arg);
+  		}
+  	rescue
+  		puts "Something is wrong, perhaps you did not pass a hash."
+  	end
+  end
+
+  # Get Posts from a wordpress source
+  #
+  # Requires:
+  # source (str): the url to the root API endpoint
+  # params (hash): a hash of parameters to filter by
+  #
+  # Note, the hash for the params argument should be formed like this:
+  #
+  # params = {'posts_per_page'=>'1','order'=>'ASC'}
+  #
+  # Even though WordPress requires the "filter" argument, we will prepend that
+  # for you in this method.
+  #
+  def self.get_posts(source, params = nil)
+		begin
+			if params.nil?
+				url = URI("#{source}posts/")
+			else
+				url = URI("#{source}posts/")
+				args = Hash.new
+				params.each { |x| 
+					arg = {"filter[#{x[0]}]"=>x[1]}
+					args = args.merge(arg)
+				}
+				require 'pry'; binding.pry
+				url.query = URI.encode_www_form(args)
+			end
+		rescue
+			puts "something is wrong with your url: #{source} or parameters. 
+			      Make sure they're an array."
 		end
+		data = self.query_url(url)
 		wpposts = JSON.load(data)
+		wpposts
 	end
 
 	def self.get_post(source, post)
-		data = open("#{source}posts/#{post}")
+		url = URI("#{source}posts/#{post}")
+		data = Net::HTTP.get(url)
 		post = JSON.load(data)
 	end
 
 	def self.get_media(source)
-		data = open("#{source}media/")
+		url = URI("#{source}media/")
+		data = Net::HTTP.get(url)
 		media = JSON.load(data)
 	end
 
 	def self.get_taxonomies(source)
-		data = open("#{source}/taxonomies")
+		url = URI("#{source}/taxonomies")
+		data = Net::HTTP.get(url)
 		taxonomies = JSON.load(data)
 	end
 	
 	def self.get_taxonomy(source, taxonomy)
-		data = open("#{source}/taxonomies/#{taxonomy}")
+		url = URI("#{source}/taxonomies/#{taxonomy}")
+		data = Net::HTTP.get(url)
 		taxonomy = JSON.load(data)
 	end
 
 	def self.get_terms(source, taxonomy)
-		data = open("#{source}/taxonomies/#{taxonomy}/terms")
+		url = URI("#{source}/taxonomies/#{taxonomy}/terms")
+		data = Net::HTTP.get(url)
 		terms = JSON.load(data)
 	end
 
-	def self.get_term(source, taxonomy, term)
-		data = open("#{source}/taxonomies/#{taxonomy}/terms/#{term}")
+	def get_term(source, taxonomy, term)
+		url = URI("#{source}/taxonomies/#{taxonomy}/terms/#{term}")
+		data = Net::HTTP.get(url)
 		term = JSON.load(data)
 	end
 end
