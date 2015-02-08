@@ -21,21 +21,30 @@ class WordPress
 
   def self.prepare_query(params)
   	args = Hash.new
-  	begin
-	  	if params.is_a?(Hash)
-	  		params.each{|x| 
-	  			filter = "filter[#{x[0]}]";
-	  			arg = {filter => x[1]};
-	  			args = args.merge(arg);
-	  			return args
-	  		}
-	  	end
-  	rescue
-  		puts "Something is wrong, perhaps you did not pass a hash."
+  	if params.is_a?(Hash)
+  		params.each{|x| 
+  			filter = "filter[#{x[0]}]";
+  			arg = {filter => x[1]};
+  			args = args.merge(arg);
+  			return args
+  		}
+  	else
+  		raise RuntimeError, "Something is wrong, perhaps you did not pass a hash."
   	end
   end
 
-  # Get Posts from a wordpress source
+  def self.query_load_json(source, endpoint, params)
+		url = URI("#{source}#{endpoint}/")
+  	if params
+  		args = prepare_query params	
+  		url.query = URI.encode_www_form(args)
+  	end
+  	data = self.query_url(url)
+  	content = JSON.load(data)
+  	return content
+  end
+
+  # Get Posts from a WordPress source
   #
   # Requires:
   # source (str): the url to the root API endpoint
@@ -48,58 +57,104 @@ class WordPress
   # Even though WordPress requires the "filter" argument, we will prepend that
   # for you in this method.
   #
-  def self.get_posts(source, params = nil)
-		begin
-			if params.nil?
-				url = URI("#{source}posts/")
-			else
-				url = URI("#{source}posts/")
-				args = prepare_query params
-				require 'pry'; binding.pry
-				url.query = URI.encode_www_form(args)
-			end
-		rescue
-			puts "something is wrong with your url: #{source} or parameters. 
-			      Make sure they're an array."
+  def self.get_posts(source, params = nil, post = nil)
+		if post.nil?
+			wpposts = self.query_load_json(source, "posts", params)
+		else
+			wpposts = self.get_post(source, post)
 		end
-		data = self.query_url(url)
-		wpposts = JSON.load(data)
-		wpposts
 	end
 
 	def self.get_post(source, post)
-		url = URI("#{source}posts/#{post}")
-		data = Net::HTTP.get(url)
-		post = JSON.load(data)
+		posts = self.query_load_json(source, "posts/#{post}", params = nil)
 	end
 
-	def self.get_media(source)
-		url = URI("#{source}media/")
-		data = Net::HTTP.get(url)
-		media = JSON.load(data)
+	# Get Media from a WordPress source
+  #
+  # By default gets the 9 most recent media objects from the WordPress site. If
+  # passed optional parameters, will filter those posts accordingly. Like 
+  # get_posts, this should be passed as a hash. If a specific attachment is 
+  # given as the third parameter, it will return only that attachment's object
+  # and the `params` hash will be ignored (if passed)
+  #
+  # Requires:
+  # source (str): the url to the root API endpoint
+  # attachment (int, optional): a specific attachment to get
+  # params (hash, optional): a hash of parameters to filter by
+  #
+  # Note, the hash for the params argument should be formed like this:
+  #
+  # params = {'posts_per_page'=>'1','order'=>'ASC'}
+  #
+  # Even though WordPress requires the "filter" argument, we will prepend that
+  # for you in this method.
+
+	def self.get_media(source, params = nil, attachment = nil)
+		if attachment
+			posts = get_attachment(source, attachment)
+		else
+			posts = self.query_load_json(source, "media", params)
+		end
 	end
 
-	def self.get_taxonomies(source)
-		url = URI("#{source}/taxonomies")
-		data = Net::HTTP.get(url)
-		taxonomies = JSON.load(data)
+	def self.get_attachment(source, attachment)
+		posts = self.query_load_json(source, "media/#{attachment}")
+	end
+
+	# Get Taxonomies from a WordPress source
+  #
+  # By default, returns all taxonomies registered in the WordPress database.
+  #
+  # If passed a hash of parameters, will filter the taxonomies accordingly. 
+  # (See wp-json documentation at http://wp-api.org/#taxonomies_retrieve-all-taxonomies)
+  #
+  # Requires:
+  # source (str): the url to the root API endpoint
+  #
+  # Optional
+  # attachment (int): a specific attachment to get
+  # params (hash): a hash of parameters to filter by (currently no filters are 
+  #	documented at wp-api.org)
+  #
+  # Note, the hash for the params argument should be formed like this:
+  #
+  # params = {'posts_per_page'=>'1','order'=>'ASC'}
+  #
+  # Even though WordPress requires the "filter" argument, we will prepend that
+  # for you in this method.
+
+	def self.get_taxonomies(source, params = nil, taxonomy = nil)
+		if taxonomy
+			get_taxonomy(source, taxonomy)
+		else
+			taxonomies = self.query_load_json(source, "taxonomies")
+		end
 	end
 	
 	def self.get_taxonomy(source, taxonomy)
-		url = URI("#{source}/taxonomies/#{taxonomy}")
-		data = Net::HTTP.get(url)
-		taxonomy = JSON.load(data)
+		taxonomy = self.query_load_json(source, "taxonomies/#{taxonomy}")
 	end
 
-	def self.get_terms(source, taxonomy)
-		url = URI("#{source}/taxonomies/#{taxonomy}/terms")
-		data = Net::HTTP.get(url)
-		terms = JSON.load(data)
+	# Get terms
+	#
+	# Retrieves all terms associated with a given taxonomy.
+	#
+	# Requires:
+	# source (str): the url to the root API endpoint
+	# taxonomy (str): the taxonomy from which to retrieve terms
+	#
+	# Optional:
+	# term (str): the slug of the term to retrieve
+
+	def self.get_terms(source, taxonomy, term = nil)
+		if term
+			terms = get_term(source, taxonomy, term)
+		else
+			terms = self.query_load_json(source, "/taxonomies/#{taxonomy}/terms")
+		end
 	end
 
 	def get_term(source, taxonomy, term)
-		url = URI("#{source}/taxonomies/#{taxonomy}/terms/#{term}")
-		data = Net::HTTP.get(url)
-		term = JSON.load(data)
+		term = self.query_load_json(source, "/taxonomies/#{taxonomy}/terms/#{term}")
 	end
 end
