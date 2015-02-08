@@ -25,7 +25,7 @@ RSpec.describe WordPress, "#prepare_query" do
       params = {"posts_per_page" => "1"}
       args = WordPress.prepare_query(params)
       expected = {"filter[posts_per_page]"=>"1"}
-      expect(args).to equal(expected)
+      expect(args).to eq(expected)
     end
   end
 end

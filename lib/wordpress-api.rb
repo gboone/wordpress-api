@@ -15,17 +15,21 @@ class WordPress
   	begin
   		data = Net::HTTP.get(uri)
   	rescue
-  		puts "There was an error with the provided URL: #{url}"
+  		puts "There was an error with the provided URL: #{uri}"
   	end
   end
 
-  def self.perpare_query(params)
+  def self.prepare_query(params)
   	args = Hash.new
   	begin
-  		params.each{|x| 
-  			arg = {"filter[#{x[0]}]"=>"#{x[1]}"};
-  			args = args.merge(arg);
-  		}
+	  	if params.is_a?(Hash)
+	  		params.each{|x| 
+	  			filter = "filter[#{x[0]}]";
+	  			arg = {filter => x[1]};
+	  			args = args.merge(arg);
+	  			return args
+	  		}
+	  	end
   	rescue
   		puts "Something is wrong, perhaps you did not pass a hash."
   	end
@@ -50,11 +54,7 @@ class WordPress
 				url = URI("#{source}posts/")
 			else
 				url = URI("#{source}posts/")
-				args = Hash.new
-				params.each { |x| 
-					arg = {"filter[#{x[0]}]"=>x[1]}
-					args = args.merge(arg)
-				}
+				args = prepare_query params
 				require 'pry'; binding.pry
 				url.query = URI.encode_www_form(args)
 			end
