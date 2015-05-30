@@ -64,7 +64,7 @@ RSpec.describe Community, "#get_posts" do
   context "with no parameters" do
     it "queries the specified url for posts and returns an array" do
       c = Community.new
-      posts = c.get_posts('https://www.harmsboone.org/wp-json/')
+      posts = c.get_posts("#{ENV['WPHOST']}/wp-json/")
       expect(posts).to be_an(Array)
     end
   end
@@ -73,7 +73,7 @@ RSpec.describe Community, "#get_posts" do
     it "queries the specified url with a valid hash of parameters" do
       params = {"posts_per_page"=>1}
       c = Community.new
-      posts = c.get_posts('https://www.harmsboone.org/wp-json/', params)
+      posts = c.get_posts("#{ENV['WPHOST']}/wp-json/", params)
       expect(posts).to be_an(Array)
     end
   end
