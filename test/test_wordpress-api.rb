@@ -17,33 +17,9 @@ end
 RSpec.describe WordPress, "#query_url" do
   context "with a valid URL" do
     it "querys the specified url and returns the result" do
-      uri = URI("#{ENV['WPHOST']}/wp-json/")
+      uri = URI("#{ENV['WPHOST']}/wp-json/wp/v2")
       body = WordPress.query_url(uri)
       expect(body).to be_a(String)
-    end
-  end
-end
-
-RSpec.describe WordPress, "#prepare_query" do
-  context "with a Hash containing query parameters" do
-    it "prepares the hash for processing as query parameters" do
-      params = {"posts_per_page" => "1"}
-      c = Community.new
-      args = c.prepare_query(params)
-      expected = {"filter[posts_per_page]"=>"1"}
-      expect(args).to eq(expected)
-    end
-  end
-  context "with a Hash containing multiple query parameters" do
-    it "prepares the hash for processing as query parameters" do
-      params = { "posts_per_page" => "1", "author" => "gboone" }
-      c = Community.new
-      args = c.prepare_query(params)
-      expected = {
-        "filter[posts_per_page]" => "1",
-        "filter[author]" => "gboone"
-      }
-      expect(args).to eq(expected)
     end
   end
 end
@@ -51,9 +27,9 @@ end
 RSpec.describe WordPress, "#query_load_json" do
   context "given a url, endpoint, and parameters" do
     it "queries the url at the specified endpoint and returns the appropariate object" do
-      url = "#{ENV['WPHOST']}/wp-json/"
-      endpoint = "posts"
-      params = {"filter[posts_per_page]"=>"1"}
+      url = "#{ENV['WPHOST']}"
+      endpoint = "/wp-json/wp/v2/posts"
+      params = {"per_page"=>"1"}
       args = WordPress.query_load_json(url, endpoint, params)
       expect(args.length).to eq(1)
     end
@@ -64,7 +40,7 @@ RSpec.describe Community, "#get_posts" do
   context "with no parameters" do
     it "queries the specified url for posts and returns an array" do
       c = Community.new
-      posts = c.get_posts("#{ENV['WPHOST']}/wp-json/")
+      posts = c.get_posts("#{ENV['WPHOST']}/wp-json/wp/v2/")
       expect(posts).to be_an(Array)
     end
   end
@@ -73,7 +49,7 @@ RSpec.describe Community, "#get_posts" do
     it "queries the specified url with a valid hash of parameters" do
       params = {"posts_per_page"=>1}
       c = Community.new
-      posts = c.get_posts("#{ENV['WPHOST']}/wp-json/", params)
+      posts = c.get_posts("#{ENV['WPHOST']}/wp-json/wp/v2/", params)
       expect(posts).to be_an(Array)
     end
   end

@@ -4,20 +4,6 @@
 class Community < WordPress
   def initialize
   end
-  
-  def prepare_query(params)
-  	args = Hash.new
-  	if params.is_a?(Hash)
-      params.each_pair{ |k, v|
-  			filter = "filter[#{k}]";
-  			arg = {filter => v};
-  			args = args.merge(arg);
-  		}
-      return args
-  	else
-  		raise RuntimeError, "Something is wrong, perhaps you did not pass a hash."
-  	end
-  end
 
   # Get Posts from a WordPress source
   #
@@ -36,8 +22,8 @@ class Community < WordPress
     if post
 			wpposts = WordPress.get_post(source, post)
     else
-      args = self.prepare_query(params)
-      wpposts = WordPress.query_load_json(source, "posts", args)
+      # args = self.prepare_query(params)
+      wpposts = WordPress.query_load_json(source, "posts", params)
 		end
 	end
 
