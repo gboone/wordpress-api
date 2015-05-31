@@ -47,10 +47,26 @@ RSpec.describe Community, "#get_posts" do
 
   context "with a hash of parameters" do
     it "queries the specified url with a valid hash of parameters" do
-      params = {"posts_per_page"=>1}
+      params = {"per_page"=>"1"}
       c = Community.new
       posts = c.get_posts("#{ENV['WPHOST']}/wp-json/wp/v2/", params)
       expect(posts).to be_an(Array)
+      expect(posts[0]['id']).to be_an(Integer)
+    end
+  end
+
+  context "with a hash of multiple parameters" do
+    it "queries the specified url with a valid hash of more than one query parameters" do
+      params = {
+        "per_page"=>"2",
+        "page"=>"2"
+      }
+      c = Community.new
+      posts = c.get_posts("#{ENV['WPHOST']}/wp-json/wp/v2/", params)
+      expect(posts).to be_an(Array)
+      expect(posts.length).to eq(2)
+      expect(posts[0]['id']).to be_an(Integer)
+      expect(posts[1]['id']).to be_an(Integer)
     end
   end
 end

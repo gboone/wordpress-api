@@ -13,10 +13,11 @@ class Community < WordPress
   #
   # Note, the hash for the params argument should be formed like this:
   #
-  # params = {'posts_per_page'=>'1','order'=>'ASC'}
+  # params = {'per_page'=>'1','order'=>'ASC'}
   #
-  # Even though WordPress requires the "filter" argument, we will prepend that
-  # for you in this method.
+  # Most query parameters follow the naming conventions found in the Codex with
+  # the exception of "posts_per_page" which must be `per_page` and `paged`
+  # which must be `page` in api calls.
   #
   def get_posts(source, params = Hash.new, post = nil)
     if post
