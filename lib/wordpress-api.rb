@@ -19,7 +19,9 @@ class WordPress
 
   def self.query_load_json(source, endpoint, params)
 		url = URI("#{source}#{endpoint}/")
-		url.query = URI.encode_www_form(params)
+    unless params.nil?
+  		url.query = URI.encode_www_form(params)
+    end
   	data = self.query_url(url)
   	content = JSON.load(data)
   	return content

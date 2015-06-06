@@ -28,6 +28,13 @@ class Community < WordPress
 		end
 	end
 
+  # Gets a post by its ID
+  #
+  # WordPress's built-in get_post function requires you to pass an ID, but you 
+  # might not have one if your staging and production databases are out of sync
+  # (for example). IF all you have is a slug, you'll want to find another way of
+  # getting post ID.
+  #
 	def get_post(source, post)
 		posts = WordPress.query_load_json(source, "posts/#{post}", params = nil)
 	end

@@ -74,6 +74,10 @@ end
 RSpec.describe Community, "#get_post" do
   context "with a specified post" do
     it "will query the url and return the post object as json" do
+      id = 1
+      c = Community.new
+      post = c.get_post("#{ENV['WPHOST']}/wp-json/wp/v2/", id)
+      expect(post['id']).to eq(1)
     end
   end
 end
