@@ -80,9 +80,17 @@ RSpec.describe Community, "#get_post" do
       expect(post['id']).to eq(1)
     end
   end
+
+  context "get post meta data", :broken => true do
+    it "will query the url and return any custom fields attached to the post" do
+      id = 1
+      meta = Community.new.get_post_meta("#{ENV['WPHOST']}/wp-json/wp/v2/", id)
+      require 'pry'; binding.pry
+    end
+  end
 end
 
-RSpec.describe Jetpack, "#auth" do
+RSpec.describe Jetpack, :broken => true do
   
   context "with proper credentials" do
     it "will authenticate a user to access a given blog" do

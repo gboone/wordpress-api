@@ -39,6 +39,14 @@ class Community < WordPress
 		posts = WordPress.query_load_json(source, "posts/#{post}", params = nil)
 	end
 
+  # Gets post meta by post ID
+  #
+  # Returns custom fields attached to a post as a JSON object. See schema at: 
+  # https://{{source}}/wp-json/wp/v2/posts/meta/schema
+  #
+  def get_post_meta(source, post)
+    posts = WordPress.query_load_json(source, "posts/#{post}/meta", params = nil)
+  end
 	# Get Media from a WordPress source
   #
   # By default gets the 9 most recent media objects from the WordPress site. If
